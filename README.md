@@ -61,5 +61,6 @@ Training scripts write to existing model and results paths. To preserve saved ar
 - Fuzzy rules, score boundaries, probability thresholds, and GA cost assumptions require validation with maintenance practitioners.
 - The prototype requires future-time, external-machine, and prospective validation before operational use.
 
-See the linked report for implementation details, literature context, rubric-mapped sections, references, figures, and the complete results analysis.
+See the linked report for implementation details, literature context, references, figures, and the complete results analysis.
+
 
