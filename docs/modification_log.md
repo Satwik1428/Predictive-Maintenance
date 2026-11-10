@@ -32,7 +32,17 @@ All modifications below were made on the existing `testing-audit` branch. This b
 ## 2026-11-10 — Report and presentation deliverables
 
 - Added nine selected user-provided dashboard screenshots under `docs/assets/` for report evidence.
-- Added `docs/project_report.docx`, formatted from the audited Markdown report with the supplied 20-mark rubric, saved-result tables, references, and UI figures.
+- Added `docs/project_report.docx`, formatted from the audited Markdown report with the report sections, saved-result tables, references, and UI figures.
 - Added `docs/Predictive_Maintenance_Project_Presentation.pptx`, a 15-slide deck with UI, dataset, evaluation, fuzzy assessment, GA, and schedule evidence.
 - Added `docs/verification_summary.md`. The existing verification suite passed all eight sections with UTF-8 console output; no training or threshold experiment was rerun.
 - Source code, dataset, models, and saved experiment results remain unchanged.
+
+
+## 2026-11-10 — Author and literature revision
+
+- Added Y Santhosh Satwik (24BCE8605) and Richard issac (24BCE8536) to the report and presentation covers.
+- Removed the marks-allocation table and marks-based wording from the report and cover.
+- Added five cited research papers with a plain-language note on what each contributed and how its lesson informed this project.
+- Revised the literature slide and references slide to match the cited papers and their verified bibliographic details.
+- Refreshed the Word report and PowerPoint deliverables; the testing-branch README now uses neutral report labels.
+- No source code, dataset, model, or saved experiment result was changed.

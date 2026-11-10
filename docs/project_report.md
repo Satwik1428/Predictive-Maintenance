@@ -2,24 +2,10 @@
 ## Project Report
 
 **Project area:** Soft computing for machine failure prediction and maintenance planning  
-**Repository reviewed:** `Satwik1428/Predictive-Maintenance`  
+**Repository reviewed:** `Satwik1428/Predictive-Maintenance`
+**Authors:** Y Santhosh Satwik (24BCE8605); Richard issac (24BCE8536)  
 **Evaluation basis:** checked-in source, saved experiment artifacts, and the verification suite run on 10 November 2026  
 **Status:** academic prototype; results are dataset-specific and not field validated
-
-## Assessment Rubric (20 Marks)
-
-| Criterion | Marks | Evidence in this report |
-|---|---:|---|
-| Abstract, Introduction & Problem Definition | 2 | Sections 1 and Abstract |
-| Literature Survey & Research Gap | 3 | Section 2 and References |
-| Proposed Methodology / System Design | 3 | Section 3 |
-| Implementation | 2 | Section 4 and dashboard figures |
-| Results & Analysis | 4 | Section 5, saved metrics, confusion counts, and UI figures |
-| Discussion, Limitations & Future Scope | 2 | Section 6 |
-| Article / Patent / Startup Proposal Documentation | 2 | Section 7 |
-| References & Citation Quality | 1 | Section 8, with numbered in-text citations and DOI links |
-| Organization, Formatting & Presentation | 1 | Structured sections, results tables, figures, and artifact map |
-| **Total** | **20** | |
 
 ## Abstract
 
@@ -49,7 +35,15 @@ Maintenance scheduling is a constrained combinatorial problem: urgency, limited 
 
 **Research gap addressed by this prototype:** the project demonstrates an end-to-end software workflow that joins failure prediction, an interpretable fuzzy condition assessment, and a resource-aware machine-job order, and it exposes comparisons and saved outputs in a dashboard. The evidence supports integration and reproducibility within the repository; it does not establish a new predictive algorithm or an industrially validated maintenance policy.
 
-**Literature work still needed for a submission:** document databases and search terms, inclusion/exclusion rules, and the selection date; add several directly relevant peer-reviewed studies; compare their data, validation protocol, metrics, and limitations against this implementation. The references below provide a verified starting set, not a complete systematic survey.
+### Research papers used and lessons applied
+
+- **Susto et al. (2015), “Machine Learning for Predictive Maintenance: A Multiple Classifiers Approach” [1].** The paper combines multiple classifiers with different prediction horizons and a cost-based maintenance decision. **What we learned:** predictive scores are more useful when connected to the consequences of missed failures and unnecessary maintenance. We therefore report precision, recall, false alarms, and missed failures alongside accuracy; this prototype still needs plant-specific costs before selecting an operating threshold.
+- **Guidotti, Pandolfo, and Pulina (2025), systematic review of supervised predictive-maintenance methods [2].** Their review covers 216 peer-reviewed studies and notes limited public dataset availability and the need for reproducibility and cross-domain generalization. **What we learned:** dataset provenance and the evaluation split must be explicit. This report discloses the missing source/license and separates machine-grouped evaluation from chronological testing, while noting that external and future-time validation remain outstanding.
+- **Jang (1993), “ANFIS: Adaptive-Network-Based Fuzzy Inference System” [3].** The paper presents hybrid learning that combines fuzzy-rule structure with input/output data. **What we learned:** fuzzy structure can be paired with fitted parameters. This informed the project’s ANFIS experiments, which remain separate comparison models rather than part of the deployed dashboard prediction path.
+- **Mamdani and Assilian (1975), “An Experiment in Linguistic Synthesis with a Fuzzy Logic Controller” [4].** The study converts an operator’s linguistic control rules into an automatic control strategy. **What we learned:** interpretable IF–THEN rules can express decisions in terms people can inspect. This informed the separate Mamdani urgency layer; its current rules and membership limits are project assumptions and still need expert validation.
+- **Mota, Faria, and Ramos (2023), genetic-algorithm production and maintenance scheduling [5].** The study frames maintenance together with production constraints and cost/overload objectives. **What we learned:** a schedule depends on real operational constraints and should optimize a defined objective. This project demonstrates capacity and machine-type changeover terms, but its objective is simplified and not calibrated to factory costs.
+
+These papers informed the choice and interpretation of methods; they are not evidence that the current prototype matches their datasets, protocols, or performance. A systematic literature review for publication would still require documented databases, search terms, inclusion criteria, and a comparison across the included studies.
 
 ## 3. Proposed methodology and system design
 
@@ -239,3 +233,4 @@ For a startup proposal, the dashboard and scheduling flow can be described as a 
 | GA objective, configuration, and convergence trace | `results/ga_metrics.json` |
 | Saved machine order | `results/ga_maintenance_schedule.csv` |
 | Existing verification definitions | `run_all_tests.py` |
+

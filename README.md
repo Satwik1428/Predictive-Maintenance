@@ -6,13 +6,13 @@ An academic prototype that explores failure prediction, interpretable condition 
 
 ## Project submission materials
 
-- [20-mark project report (Markdown)](docs/project_report.md)
-- [20-mark project report (Word)](docs/project_report.docx)
+- [Project report (Markdown)](docs/project_report.md)
+- [Project report (Word)](docs/project_report.docx)
 - [Project presentation (PowerPoint)](docs/Predictive_Maintenance_Project_Presentation.pptx)
 - [Verification summary](docs/verification_summary.md)
 - [Modification log](docs/modification_log.md)
 
-The report follows the supplied assessment rubric. The presentation uses the supplied dashboard screenshots and the repository's saved dataset, model, and scheduling results. Figures are identified as prototype evidence; no new model training was performed.
+The report covers the project background, literature, system design, implementation, saved results, limitations, and references. The presentation uses the supplied dashboard screenshots and the repository's saved dataset, model, and scheduling results. Figures are identified as prototype evidence; no new model training was performed.
 
 ## System overview
 
@@ -146,4 +146,5 @@ Launch with `streamlit run dashboard/app.py`. The dashboard provides dataset ana
 - `main` preserves the original project state.
 - `testing-audit` is the isolated branch for audit documentation and approved experiments.
 - Do not change ANN architecture, fuzzy rules, GA settings, saved model files, or prior experiment results without the required approval and a separate experiment plan.
+
 
