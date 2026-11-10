@@ -2,12 +2,14 @@
 
 An academic prototype for machine failure prediction and maintenance planning. The project combines artificial neural network (ANN) and adaptive neuro-fuzzy inference system (ANFIS) comparisons with a Mamdani fuzzy condition assessment and a genetic-algorithm (GA) maintenance schedule.
 
+**Project authors:** Y Santhosh Satwik (24BCE8605) and Richard issac (24BCE8536)
+
 > **Branch and evidence note:** `main` contains the baseline repository. The report, dashboard screenshots, verification summary, and saved evaluation discussed below were prepared from the separate `testing-audit` branch. The documentation links therefore point to that branch. The audit commit does not change model files, source code, or existing experiment outputs on `main`.
 
 ## Project materials
 
-- [20-mark project report (Markdown)](https://github.com/Satwik1428/Predictive-Maintenance/blob/testing-audit/docs/project_report.md)
-- [20-mark project report (Word)](https://github.com/Satwik1428/Predictive-Maintenance/blob/testing-audit/docs/project_report.docx)
+- [Project report (Markdown)](https://github.com/Satwik1428/Predictive-Maintenance/blob/testing-audit/docs/project_report.md)
+- [Project report (Word)](https://github.com/Satwik1428/Predictive-Maintenance/blob/testing-audit/docs/project_report.docx)
 - [Project presentation (PowerPoint)](https://github.com/Satwik1428/Predictive-Maintenance/blob/testing-audit/docs/Predictive_Maintenance_Project_Presentation.pptx)
 - [Verification summary](https://github.com/Satwik1428/Predictive-Maintenance/blob/testing-audit/docs/verification_summary.md)
 - [Modification log](https://github.com/Satwik1428/Predictive-Maintenance/blob/testing-audit/docs/modification_log.md)
@@ -60,3 +62,4 @@ Training scripts write to existing model and results paths. To preserve saved ar
 - The prototype requires future-time, external-machine, and prospective validation before operational use.
 
 See the linked report for implementation details, literature context, rubric-mapped sections, references, figures, and the complete results analysis.
+
