@@ -1,123 +1,182 @@
+# Title Page
+
 # AI-Based Predictive Maintenance System
-## Project Report
+
+**Project Report**
+
+**Prepared by**  
+Y Santhosh Satwik — 24BCE8605  
+Richard issac — 24BCE8536
 
 **Project area:** Soft computing for machine failure prediction and maintenance planning  
-**Repository reviewed:** `Satwik1428/Predictive-Maintenance`
-**Authors:** Y Santhosh Satwik (24BCE8605); Richard issac (24BCE8536)  
-**Evaluation basis:** checked-in source, saved experiment artifacts, and the verification suite run on 10 November 2026  
-**Status:** academic prototype; results are dataset-specific and not field validated
+**Repository:** [Satwik1428/Predictive-Maintenance](https://github.com/Satwik1428/Predictive-Maintenance)  
+**Prepared:** 10 November 2026
+
+**Project status:** Academic prototype. Results are specific to the saved data and evaluation protocols; they are not field validated.
+
+---
 
 ## Abstract
 
-This project implements a predictive-maintenance prototype that links machine sensor records to a binary estimate of failure within 24 hours and a maintenance priority. It compares feed-forward artificial neural networks (ANN) with adaptive neuro-fuzzy inference systems (ANFIS). A Mamdani fuzzy inference system translates predicted risk and selected condition indicators into a human-readable urgency and health score. A genetic algorithm (GA) then orders machine jobs subject to an assumed daily capacity and a machine-type changeover penalty. A Streamlit dashboard presents data, saved metrics, machine assessments, fuzzy rules, and the saved schedule.
+This report describes an academic predictive-maintenance prototype that uses machine sensor and operating records to estimate failure risk and prioritize maintenance. The project compares an artificial neural network (ANN) with adaptive neuro-fuzzy inference systems (ANFIS). A separate Mamdani fuzzy inference system converts selected condition inputs and ANN failure probability into urgency, health, severity, and a recommendation. A genetic algorithm (GA) then orders machine jobs under an assumed daily capacity and machine-type changeover penalty. A Streamlit dashboard displays the dataset, saved evaluation results, machine assessments, and maintenance schedule.
 
-The checked-in dataset has 24,042 records for 20 machines and a 14.81% overall positive-label rate, according to project artifacts. The most defensible saved ANN evaluation is five-fold, machine-grouped cross-validation: accuracy 89.77%, precision 61.71%, recall 81.43%, F1 70.21%, ROC-AUC 0.9428, and PR-AUC 0.7778. This evaluation reduces machine-identity leakage but does not test prospective future-time or external-plant generalization. On a separate chronological test split, balanced ANFIS reaches 92.67% recall (278/300 failures detected) at 40.47% precision and 409 false alarms. The GA reduces its assumed objective by 3.88% relative to priority ordering. Dataset provenance, membership boundaries, and scheduling costs still need external validation. No industrial performance or savings claim is supported by the current evidence.
+The repository dataset contains 24,042 records from 20 machines, with 3,560 positive failure-within-24-hour labels (14.81%). The strongest saved machine-independent ANN evaluation is five-fold group-aware cross-validation: 89.77% accuracy, 61.71% precision, 81.43% recall, 70.21% F1, 0.9428 ROC-AUC, and 0.7778 PR-AUC. It holds out machine identities but does not hold out future time periods. In a separate chronological test comparison containing 300 positive cases, balanced ANFIS obtains 92.67% recall, detecting 278 failures, with 409 false alarms and 22 missed failures. The GA lowers its saved prototype objective by 3.88% relative to priority ordering. Dataset provenance, external validity, fuzzy rules, and scheduling costs require further verification. No industrial performance or financial-savings claim is supported by these results.
 
-## 1. Introduction and problem definition
+## Table of Contents
 
-Reactive maintenance can leave an organization with little warning before equipment failure, while calendar-based preventive maintenance can consume staff and parts before they are needed. Predictive maintenance attempts to use condition and operating data to inform when equipment should be inspected or serviced. However, a probability score alone does not explain urgency or allocate scarce maintenance capacity.
+- [Introduction](#introduction)
+- [Literature Review](#literature-review)
+- [Motivation](#motivation)
+- [Proposed Work](#proposed-work)
+- [Methodology](#methodology)
+- [Model / Architecture / Design](#model--architecture--design)
+- [Implementation](#implementation)
+- [Results and Analysis](#results-and-analysis)
+- [Comparison with Existing Methods](#comparison-with-existing-methods)
+- [Conclusion](#conclusion)
+- [Scope for Future Work](#scope-for-future-work)
+- [References](#references)
 
-The project addresses three linked tasks:
+## Introduction
 
-1. Estimate whether failure is likely within the next 24 hours from sensor, operating, and maintenance-history features.
-2. Convert risk and condition indicators into an interpretable urgency category and health score.
-3. Produce a capacity-constrained order for the machine jobs using a transparent scheduling objective.
+Industrial equipment can fail between scheduled inspections. Reactive maintenance may cause unplanned downtime, while fixed preventive schedules can service equipment before it needs attention. Predictive maintenance uses operational measurements and machine history to support decisions about inspection and service timing.
 
-The scope is a software and evaluation prototype. It is not a real-time sensor integration, validated safety system, or autonomous work-order issuer. Human review and plant-specific validation would be required before operational use.
+This project addresses three connected tasks:
 
-## 2. Literature survey and research gap
+1. Estimate whether a record is associated with failure within the next 24 hours.
+2. Convert risk and condition readings into an interpretable maintenance urgency and health score.
+3. Schedule machine jobs under a limited daily service capacity.
 
-Predictive-maintenance research uses condition monitoring and supervised learning to detect faults and forecast maintenance needs. Susto et al. describe a multiple-classifier approach in a semiconductor manufacturing context and motivate data-driven maintenance decisions [1]. Recent reviews continue to identify reproducible data and cross-domain generalization as important issues for industrial predictive maintenance [2].
+The work is a software prototype evaluated on the checked-in dataset and saved experiment artifacts. It is not a real-time sensor system, a validated safety controller, or an autonomous work-order issuer. All displayed recommendations require human review before any operational use.
 
-Neural networks can model nonlinear relationships between a vector of sensor/operating variables and a failure label. This repository uses a scikit-learn multilayer perceptron (MLP) rather than introducing a new ANN training method. Its two ANFIS experiments follow the adaptive neuro-fuzzy idea of combining fuzzy-rule structure with data-fitted parameters [3]. The separate Mamdani FIS uses linguistic sets and rules to make an urgency assessment inspectable; Mamdani and Assilian's controller is an early reference for this rule-based inference style [4].
+![Dashboard overview with record counts, machine count, health summary, and system flow.](assets/dashboard_overview.png)
 
-Maintenance scheduling is a constrained combinatorial problem: urgency, limited capacity, changeovers, and other plant constraints can conflict. Prior work has applied genetic algorithms to joint production and maintenance scheduling [5]. This project is a smaller single-objective demonstration, with a capacity assumption and a type-changeover penalty.
+*Figure 1. Project dashboard overview. The displayed average health value is a UI snapshot, not an evaluation metric.*
 
-**Research gap addressed by this prototype:** the project demonstrates an end-to-end software workflow that joins failure prediction, an interpretable fuzzy condition assessment, and a resource-aware machine-job order, and it exposes comparisons and saved outputs in a dashboard. The evidence supports integration and reproducibility within the repository; it does not establish a new predictive algorithm or an industrially validated maintenance policy.
+## Literature Review
 
-### Research papers used and lessons applied
+Predictive-maintenance research connects condition monitoring, fault prediction, and maintenance decisions. The cited papers informed the methods and the limits emphasized in this report. Their results are not direct benchmarks for this repository because their datasets, tasks, and evaluation settings differ.
 
-- **Susto et al. (2015), “Machine Learning for Predictive Maintenance: A Multiple Classifiers Approach” [1].** The paper combines multiple classifiers with different prediction horizons and a cost-based maintenance decision. **What we learned:** predictive scores are more useful when connected to the consequences of missed failures and unnecessary maintenance. We therefore report precision, recall, false alarms, and missed failures alongside accuracy; this prototype still needs plant-specific costs before selecting an operating threshold.
-- **Guidotti, Pandolfo, and Pulina (2025), systematic review of supervised predictive-maintenance methods [2].** Their review covers 216 peer-reviewed studies and notes limited public dataset availability and the need for reproducibility and cross-domain generalization. **What we learned:** dataset provenance and the evaluation split must be explicit. This report discloses the missing source/license and separates machine-grouped evaluation from chronological testing, while noting that external and future-time validation remain outstanding.
-- **Jang (1993), “ANFIS: Adaptive-Network-Based Fuzzy Inference System” [3].** The paper presents hybrid learning that combines fuzzy-rule structure with input/output data. **What we learned:** fuzzy structure can be paired with fitted parameters. This informed the project’s ANFIS experiments, which remain separate comparison models rather than part of the deployed dashboard prediction path.
-- **Mamdani and Assilian (1975), “An Experiment in Linguistic Synthesis with a Fuzzy Logic Controller” [4].** The study converts an operator’s linguistic control rules into an automatic control strategy. **What we learned:** interpretable IF–THEN rules can express decisions in terms people can inspect. This informed the separate Mamdani urgency layer; its current rules and membership limits are project assumptions and still need expert validation.
-- **Mota, Faria, and Ramos (2023), genetic-algorithm production and maintenance scheduling [5].** The study frames maintenance together with production constraints and cost/overload objectives. **What we learned:** a schedule depends on real operational constraints and should optimize a defined objective. This project demonstrates capacity and machine-type changeover terms, but its objective is simplified and not calibrated to factory costs.
+### Research papers used and lessons learned
 
-These papers informed the choice and interpretation of methods; they are not evidence that the current prototype matches their datasets, protocols, or performance. A systematic literature review for publication would still require documented databases, search terms, inclusion criteria, and a comparison across the included studies.
+1. **Susto et al. (2015), multiple-classifier predictive maintenance [1].** The paper combines classifiers with different prediction horizons and connects their outputs to cost-based maintenance decisions. **Lesson for this project:** prediction quality should be assessed using missed failures and false alarms as well as accuracy. We therefore report precision, recall, and confusion counts; plant-specific costs are still needed before setting a decision threshold.
+2. **Guidotti, Pandolfo, and Pulina (2025), systematic review of supervised predictive maintenance [2].** Their review covers 216 peer-reviewed studies and identifies limited public data availability and cross-domain generalization as continuing concerns. **Lesson for this project:** document data provenance and evaluation design. The repository’s dataset source and license are not recorded, and the machine-grouped evaluation is distinguished from future-time validation.
+3. **Jang (1993), ANFIS [3].** The paper presents a hybrid learning procedure that combines fuzzy-rule structure with input/output data. **Lesson for this project:** adaptive neuro-fuzzy models can be compared as a distinct prediction approach. The ANFIS experiments are kept separate from the ANN-to-FIS-to-GA dashboard path.
+4. **Mamdani and Assilian (1975), linguistic fuzzy control [4].** The study converts an operator’s linguistic rules into a fuzzy control strategy. **Lesson for this project:** a rule-based layer can express urgency in terms that a person can inspect. The prototype uses a Mamdani FIS for this role, but its rule base and membership boundaries still need expert validation.
+5. **Mota, Faria, and Ramos (2023), genetic-algorithm production and maintenance scheduling [5].** Their method considers maintenance together with production constraints and cost and overload objectives. **Lesson for this project:** scheduling quality depends on realistic operational constraints. The current GA demonstrates capacity and changeover terms only; its objective is simplified and is not calibrated to factory costs.
 
-## 3. Proposed methodology and system design
+These sources provide a focused background, not a complete systematic literature review. A publication-ready review would require documented databases, search terms, inclusion criteria, and a structured comparison across additional studies.
 
-### 3.1 Data and preparation
+## Motivation
 
-The project uses `dataset/raw/predictive_maintenance_v3.csv`, with processed train/test files and a saved preprocessing summary. The project artifacts report 24,042 records, 20 machine IDs, and 15 columns. The binary target is `failure_within_24h`. Its distribution is 20,482 class-0 and 3,560 class-1 records (85.19% / 14.81%). The preprocessing script validates required columns and the binary target, removes exact duplicates and invalid timestamps, sorts chronologically, and makes an 80:20 split. The saved split contains 19,233 training and 4,809 test records. Positive prevalence is 16.95% in training (3,260 records) and 6.24% in test (300 records).
+A failure probability by itself does not state what action to take, and a list of high-risk machines does not account for limited maintenance capacity. The project was motivated by the need to demonstrate a connected decision-support workflow: estimate risk, explain condition urgency, and produce a feasible job order for a small machine set.
 
-The model inputs are seven numerical features (`vibration_rms`, `temperature_motor`, `current_phase_avg`, `pressure_level`, `rpm`, `hours_since_maintenance`, `ambient_temp`) and two categorical features (`machine_type`, `operating_mode`). `failure_type`, `estimated_repair_cost`, and `rul_hours` are excluded from the ANN predictors. Model pipelines impute numeric missing values using training medians, standardize numeric inputs, impute categorical values with the most frequent category, and one-hot encode categories. Random oversampling is fitted on training data only in the ANN and balanced ANFIS paths.
+The prototype also makes evaluation trade-offs visible. In the saved comparison, balanced ANFIS detects more positive cases but generates more false alarms. This illustrates why maintenance teams need to consider the relative impact of a missed failure, an unnecessary inspection, and a constrained service schedule. The project does not assign monetary values to those outcomes.
 
-**Provenance caveat:** the checked-in repository does not identify the raw CSV's creator, source URL, collection protocol, or license. Its provenance must be verified before the data is described as a public benchmark or redistributed. This report therefore calls it the repository dataset.
+## Proposed Work
 
-### 3.2 ANN prediction
+The proposed work is an integrated demonstration with two alternative failure-prediction models and two downstream decision components:
 
-The primary ANN is a scikit-learn MLP classifier with ReLU hidden activations and hidden layer sizes (32, 16, 8), trained with Adam. The pipeline includes imputation, scaling, one-hot encoding, and training-only random oversampling. The primary script evaluates a chronological 80:20 split. Because each machine has records on both sides of that split, these scores are not used as the main claim for new-machine generalization.
+- Train and evaluate ANN and ANFIS prediction approaches using the repository’s saved data and evaluation procedures.
+- Use ANN risk with sensor and maintenance-history inputs in a Mamdani FIS to estimate urgency and health.
+- Use a GA to order machine jobs under the prototype’s daily-capacity and changeover assumptions.
+- Present dataset summaries, saved model metrics, machine histories, fuzzy assessments, and the saved schedule in a Streamlit dashboard.
 
-The group-aware experiment uses five-fold `StratifiedGroupKFold`, grouping on `machine_id`, with a check that train and validation machine sets are disjoint in every fold. Each fold fits a fresh copy of the preprocessing/sampling/model pipeline. It pools out-of-fold probabilities and reports accuracy, precision, recall, F1, ROC-AUC, and PR-AUC. This tests performance on machines excluded from each fold's training data. It does not preserve forward-in-time evaluation: folds are stratified by machine group over the full dataset, so future-period generalization remains untested. The use of group-aware splitting follows the purpose of keeping each group within one side of a split [6].
+In the currently audited workflow, ANN probability feeds the fuzzy assessment and GA scheduler. ANFIS is a separate comparison model; it is not the model consumed by the scheduler. The contribution is integration and transparent comparison in a prototype, not a new learning algorithm or a validated industrial policy.
 
-The repository also compares four ANN configurations using the same five group-aware folds and early stopping. The four-feature ANN is a separate chronological-split comparison using the same four inputs as ANFIS. Threshold scripts sweep saved out-of-fold probabilities. These sweeps are exploratory because selecting a threshold and scoring it on the same OOF predictions is not a separate validation step.
+## Methodology
 
-### 3.3 ANFIS prediction
+### Dataset and preparation
 
-The two ANFIS experiments use four features: motor temperature, vibration RMS, average phase current, and hours since maintenance. Each feature receives two Gaussian membership functions, producing 16 rule combinations. The model initializes premise centers from training quantiles, fits normalized firing strengths and linear Sugeno consequent terms, and optimizes premise parameters with L-BFGS-B on a seeded training subset. Consequents are refit on the training data. Median imputation and standardization are fitted on training data and applied to the held-out test data. The balanced variant applies random oversampling to the training data only; the unbalanced version does not.
+The project uses `dataset/raw/predictive_maintenance_v3.csv` and processed training and test files. The raw data has 24,042 rows, 20 machine IDs, and 15 columns. The target is `failure_within_24h`: 20,482 records are negative and 3,560 are positive. The preprocessing pipeline validates required columns and target values, removes exact duplicates and invalid timestamps, sorts records by time, and makes an 80:20 chronological split. The saved partitions contain 19,233 training rows and 4,809 test rows. Positive prevalence is 16.95% in training and 6.24% in test.
 
-### 3.4 Mamdani fuzzy assessment
+The ANN uses seven numerical inputs—vibration RMS, motor temperature, average phase current, pressure, RPM, hours since maintenance, and ambient temperature—and two categorical inputs: machine type and operating mode. The project excludes failure type, estimated repair cost, and remaining useful life from these ANN predictors. Numeric imputation and scaling, categorical imputation and one-hot encoding, and training-only oversampling are applied in the relevant pipelines.
 
-The Mamdani system receives motor temperature, vibration RMS, ANN failure probability, and hours since maintenance. It fuzzifies each input into low/medium/high linguistic memberships using shoulder, triangular, and trapezoidal functions. Its explicit rule base includes high-risk and joint high-condition rules, an overdue-maintenance rule, a low-risk/healthy rule, and a physical-danger override for high temperature with low ANN risk. Rule antecedents use minimum, rule outputs are clipped and aggregated by maximum, and centroid defuzzification over 0–100 yields urgency. Health is `100 - urgency`; score bands map to NORMAL, LOW, MEDIUM, HIGH, and CRITICAL recommendations.
+The repository does not identify the dataset creator, source URL, acquisition protocol, or license. This report therefore refers to it as the repository dataset and does not attribute it to a public benchmark.
 
-These rules provide a traceable decision layer but are encoded assumptions. The membership boundaries and rule consequences have not been validated with maintenance engineers or a plant safety policy.
+![Dataset analysis view and example records.](assets/dataset_analysis.png)
 
-### 3.5 Genetic algorithm scheduling
+*Figure 2. Dashboard view of dataset size, fields, and example sensor records.*
 
-For each machine, the scheduler uses the latest timestamped record, fills remaining inputs using dataset medians/modes, obtains ANN failure probability, and calculates fuzzy urgency. Combined priority is 0.60 times failure probability plus 0.40 times normalized urgency. A chromosome is a permutation of machine jobs. The objective sums risk-weighted waiting position plus a changeover penalty between different machine types within a day. Capacity is four machines per day. CRITICAL jobs are pinned to the earliest positions. The implementation uses population 80, 150 generations, 15% swap-mutation probability, four elites, tournament selection, order crossover, and random seed 42. It compares the resulting schedule with FIFO and descending-priority order.
+![Target distribution displayed by the dashboard.](assets/failure_distribution.png)
 
-The saved objective is dimensionless and uses assumed values. It omits real calendars, workforce skill, parts availability, job duration, production dependencies, and hard deadlines. The optimizer returns a best-found result under this implementation, not a proof of global optimality.
+*Figure 3. Label distribution: 20,482 records without failure and 3,560 records with failure within 24 hours.*
 
-### 3.6 Dashboard and software workflow
+### Prediction evaluation
 
-The Streamlit dashboard reads the local dataset, trained artifacts, and saved result files. It provides dataset analysis, ANN/ANFIS metric comparison, a machine monitoring view, interactive fuzzy assessment, a saved GA schedule, and experimental results and limitations. It is a local demonstration interface, not a live telemetry service. `requirements.txt` lists pandas, NumPy, scikit-learn, imbalanced-learn, SciPy, joblib, Streamlit, and Plotly.
+The primary ANN is a scikit-learn MLP classifier with ReLU activations and hidden layers (32, 16, 8), trained with Adam. Its saved primary experiment uses a chronological split. Since the same machine IDs occur in both partitions, this result is reported as a comparison rather than as the main unseen-machine estimate.
 
-![Dashboard overview showing 24,042 records, 20 machines, average health, and the system workflow.](assets/dashboard_overview.png)
+The machine-independent ANN evaluation uses five-fold `StratifiedGroupKFold` grouped by `machine_id`. Each machine appears in either the training side or validation side of a fold, not both. Each fold fits its own preprocessing, sampling, and ANN pipeline; pooled out-of-fold probabilities produce the saved metrics. This addresses machine overlap but mixes time periods across folds. It is not a prospective future-time test. The group-aware methodology follows the purpose of keeping groups intact across folds [6].
 
-*Figure 1. Dashboard overview from the supplied project UI screenshots. The dashboard's 76.9/100 average health is a displayed snapshot, not a model-validation metric.*
+The ANFIS experiments use four numerical features: motor temperature, vibration RMS, average phase current, and hours since maintenance. Each input has two Gaussian membership functions, resulting in 16 rule combinations. The implementation fits premise and consequent parameters using training data. The balanced variant applies random oversampling to the training data only; the held-out test data remains unchanged.
 
-![Dataset Analysis page showing the repository dataset profile.](assets/dataset_analysis.png)
+### Fuzzy assessment and scheduling
 
-*Figure 2. Dataset Analysis page: 24,042 rows, 15 columns, 20 machine IDs, and a sample of the sensor records.*
+The Mamdani FIS takes motor temperature, vibration RMS, ANN failure probability, and hours since maintenance. It maps inputs to low/medium/high fuzzy memberships, evaluates its explicit IF–THEN rules, aggregates outputs, and uses centroid defuzzification to obtain urgency on a 0–100 scale. Health is defined by the implementation as 100 minus urgency; score bands determine severity and recommendation. The rules are software assumptions and have not been validated by maintenance experts.
 
-![Failure class distribution shown in the dashboard.](assets/failure_distribution.png)
+The GA scheduler evaluates the latest record for each machine, calculates ANN probability and fuzzy urgency, then orders jobs under a capacity of four machines per day. Its saved configuration uses population 80, 150 generations, a 15% swap-mutation probability, four elites, and seed 42. The objective combines risk-weighted waiting position with a machine-type changeover penalty. It is compared with FIFO and descending-priority order. Objective values are dimensionless prototype costs, not money.
 
-*Figure 3. Dashboard target distribution: 20,482 records without failure and 3,560 with failure within 24 hours.*
+## Model / Architecture / Design
 
-![Interactive fuzzy machine assessment in the dashboard.](assets/fuzzy_assessment.png)
+The system separates predictive models from the decision-support stages:
 
-*Figure 4. Fuzzy assessment example: at the displayed settings, urgency is 79.37/100, health is 20.63/100, and severity is HIGH.*
+```text
+Machine sensor and history records
+                 │
+       ┌─────────┴─────────┐
+       │                   │
+     ANN path          ANFIS path
+       │              model comparison
+       ▼
+ANN failure probability
+       │
+       ▼
+Mamdani fuzzy assessment
+(urgency, health, severity)
+       │
+       ▼
+Genetic-algorithm schedule
+(capacity and changeover terms)
+       │
+       ▼
+Streamlit dashboard and saved outputs
+```
 
-## 4. Implementation
+| Component | Inputs | Output and role |
+|---|---|---|
+| ANN | Seven numeric and two categorical variables | Failure-within-24-hour probability; main dashboard/scheduling prediction path |
+| ANFIS | Temperature, vibration, current, maintenance hours | Alternative failure prediction; separate comparison experiment |
+| Mamdani FIS | Temperature, vibration, ANN probability, maintenance hours | Urgency score, health score, severity, and recommendation |
+| Genetic algorithm | Machine-level risk and urgency, machine type | Maintenance order under assumed capacity and changeover penalty |
+| Streamlit dashboard | Dataset, saved models, metrics, and schedules | Interactive project views; local prototype rather than live telemetry |
 
-The implementation is organized into separate Python scripts under `src/`, a dashboard under `dashboard/`, data under `dataset/`, serialized models under `models/`, and machine-readable results under `results/`. The existing `run_all_tests.py` defines checks for Python compilation, fuzzy edge cases, GA critical-job ordering, ANFIS artifact loading, saved machine-independent metrics, ANN configuration results, threshold-output files, and a headless dashboard health endpoint.
+The stages are loosely coupled through saved files and Python modules. The ANN and ANFIS comparisons use different validation protocols in some experiments; their metrics must therefore be interpreted with those protocol differences in mind.
 
-This report analyzes the existing saved artifacts. No training, preprocessing, or threshold experiment was rerun while preparing it. The existing verification suite was run once as requested and is summarized below. Training scripts write to the existing model/result filenames; preserve them by using a separate experiment copy and distinct output directory for future experiments.
+## Implementation
 
-**Verification run, 10 November 2026:** the existing `run_all_tests.py` suite passed all eight checks after rerunning with UTF-8 console output. It compiled 16 Python modules, passed four fuzzy edge cases and GA critical-job ordering checks (1, 4, and 6 critical machines), loaded both ANFIS artifacts, checked the five-fold ANN metrics and four ANN configurations, validated six threshold result files, and received HTTP 200 from the headless dashboard health endpoint. The first attempt stopped at a Windows CP1252 console encoding error while printing a checkmark; it did not reach a project assertion. No model training or experiment was run by this verification suite. See [verification summary](verification_summary.md).
+The implementation is organized into `src/` for preprocessing, model experiments, fuzzy logic, and scheduling; `dashboard/app.py` for the Streamlit interface; `dataset/` for raw and processed data; `models/` for serialized estimators; and `results/` for saved metrics, predictions, and schedules. The dashboard displays dataset analysis, model comparisons, sensor trends, individual machine assessments, fuzzy logic output, and the optimized maintenance schedule.
 
-![Machine monitoring page showing a selected machine, its scores, and sensor history.](assets/machine_monitoring.png)
+A displayed fuzzy example produces urgency 79.37/100, health 20.63/100, HIGH severity, and the recommendation “Arrange maintenance soon.” This is an example of the implemented rule system, not a validated maintenance threshold.
 
-*Figure 5. Individual Machine Monitoring page with the selected machine's saved assessment and temperature history.*
+![Interactive fuzzy machine assessment.](assets/fuzzy_assessment.png)
 
-## 5. Results and analysis
+*Figure 4. Dashboard example of the Mamdani assessment and resulting recommendation.*
 
-### 5.1 Machine-independent ANN
+![Individual machine monitoring view.](assets/machine_monitoring.png)
 
-The pooled five-fold group-aware results saved in `machine_independent_ann_metrics.json` are:
+*Figure 5. Selected machine assessment and sensor history in the dashboard.*
 
-| Metric | Result |
+The existing verification suite was run with UTF-8 console output and passed all eight sections. It compiled 16 Python modules, checked fuzzy edge cases and GA critical-job ordering, loaded both ANFIS artifacts, validated the saved group-aware ANN and ANN-configuration results, checked six threshold result files, and received HTTP 200 from the headless dashboard health endpoint. No model training, preprocessing, or threshold experiment was run to prepare this report. Training scripts write to existing artifact paths; future experiments should use a separate copy and separate output paths.
+
+## Results and Analysis
+
+### Dataset and machine-level overview
+
+The dataset contains 24,042 observations across 20 machines and four machine types. There are 3,560 positive records (14.81%) overall. The chronological test partition contains 300 positives (6.24% of its 4,809 records), compared with 16.95% positives in training. This prevalence difference affects precision and the number of alerts expected at a fixed threshold.
+
+### Machine-independent ANN results
+
+| Metric | Saved result |
 |---|---:|
 | Accuracy | 89.77% |
 | Precision | 61.71% |
@@ -130,15 +189,13 @@ The pooled five-fold group-aware results saved in `machine_independent_ann_metri
 | False negatives | 661 |
 | True positives | 2,899 |
 
-Recall indicates that the pooled OOF predictions identify 2,899 of 3,560 positive records, while precision indicates that false alarms remain substantial. PR-AUC is included because the class distribution is imbalanced. Per-fold results vary: F1 ranges from approximately 53.90% to 82.71%, which cautions against treating the pooled mean as stable across machine subsets.
+These are pooled out-of-fold results from the machine-grouped ANN evaluation. They are the primary ANN figures for discussing unseen machine IDs. They should not be described as future-time or external-plant performance.
 
-![Machine-independent ANN dashboard metrics.](assets/grouped_ann_metrics.png)
+![Dashboard display of the group-aware ANN metrics.](assets/grouped_ann_metrics.png)
 
-*Figure 6. The dashboard presents the five-fold machine-grouped ANN metrics separately from the chronological single-split comparison.*
+*Figure 6. Machine-independent ANN evaluation shown in the dashboard.*
 
-### 5.2 ANN configuration comparison
-
-All rows below use the saved 5-fold machine-grouped OOF evaluation and a 0.5 classification threshold.
+### ANN configuration comparison
 
 | Configuration | Accuracy | Precision | Recall | F1 | ROC-AUC | PR-AUC |
 |---|---:|---:|---:|---:|---:|---:|
@@ -147,65 +204,75 @@ All rows below use the saved 5-fold machine-grouped OOF evaluation and a 0.5 cla
 | Regularized (64, 32) | 89.38% | 60.82% | 79.52% | 68.92% | 0.9384 | 0.7583 |
 | Large (128, 64, 32) | 89.63% | 62.29% | 75.87% | 68.41% | 0.9225 | 0.6861 |
 
-The baseline has the highest recall, F1, ROC-AUC, and PR-AUC among the saved configurations; the large network has slightly higher precision and lower false positives but also lower recall. The comparison should not be read as an exhaustive hyperparameter search.
+The baseline configuration has the best recall, F1, ROC-AUC, and PR-AUC among the saved configurations. The larger network has slightly higher precision but lower recall. These four saved configurations are not an exhaustive search.
 
-### 5.3 Four-feature ANN and ANFIS comparison
+### Four-feature model comparison
 
-These results use the repository's separate chronological test split with 300 positive test records. They are not directly equivalent to the group-aware ANN results above.
+The following models use four inputs and the same chronological test partition with 300 positive records. These results are not directly comparable to the group-aware ANN metrics above.
 
-![Saved dashboard comparison of ANN and ANFIS models.](assets/model_comparison.png)
-
-*Figure 7. Dashboard comparison view. The single-split nine-feature ANN is shown for completeness; the group-aware result above is the more appropriate result for unseen-machine claims.*
-
-| Model | Accuracy | Precision | Recall | F1 | ROC-AUC | FP | FN |
+| Model | Accuracy | Precision | Recall | F1 | ROC-AUC | False positives | False negatives |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | Four-feature ANN | 90.93% | 38.07% | 72.33% | 49.89% | 0.9240 | 353 | 83 |
 | Original ANFIS | 95.43% | 66.81% | 53.00% | 59.11% | 0.9390 | 79 | 141 |
 | Balanced ANFIS | 91.04% | 40.47% | 92.67% | 56.33% | 0.9565 | 409 | 22 |
 
-Balanced ANFIS has the highest recall and ROC-AUC in this four-feature comparison, detecting 278 of the 300 failures and missing 22. Its 409 false positives are the highest of the three. The unbalanced ANFIS produces fewer false alarms but misses 141 failures. This makes the cost of a false alarm versus a missed failure central to choosing a useful operating point. The result does not establish that balanced ANFIS is superior for deployment.
+Balanced ANFIS detects 278 of the 300 positive test records and misses 22, while producing 409 false alarms. The original ANFIS produces fewer false alarms but misses 141 positives. The model choice depends on the relative cost of missed failures and unnecessary interventions; those costs are not known here.
 
-### 5.4 Threshold analysis
+![Saved comparison of ANN and ANFIS results.](assets/model_comparison.png)
 
-The saved threshold CSVs evaluate multiple thresholds using OOF probabilities and include alternative assumed false-negative cost scenarios. Raising the threshold generally reduces false positives but also reduces recall. These files are useful for illustrating the trade-off and are explicitly exploratory; final threshold selection requires nested or otherwise independent validation and plant-calibrated costs.
+*Figure 7. Dashboard comparison of saved prediction metrics. The feature set and split used for each row should be considered when interpreting it.*
 
-### 5.5 Maintenance schedule
+### Chronological ANN comparison result
 
-The saved schedule covers 20 machines at a capacity of four per day. Its GA objective is 3.0284 compared with 3.1505 for descending-priority ordering and 4.7758 for FIFO. This is a 3.88% reduction against priority ordering and 36.59% against FIFO for the saved run. Since the objective uses assumed weights and does not represent money or a complete factory schedule, the reduction is evidence only about the modeled objective on this instance.
+The nine-feature ANN chronological split reports 97.57% accuracy, 76.99% precision, 87.00% recall, 81.69% F1, and 0.9894 ROC-AUC. Since machines occur on both sides of that split, this number is not the primary unseen-machine result. It is retained as a separate saved comparison only.
 
-![GA optimization progress displayed by the dashboard.](assets/ga_progress.png)
+### Genetic-algorithm schedule
 
-*Figure 8. Saved GA objective history over 150 generations; the plotted value is the prototype objective, not a monetary cost.*
+| Scheduling strategy | Saved objective |
+|---|---:|
+| FIFO | 4.7758 |
+| Descending priority | 3.1505 |
+| Genetic algorithm | 3.0284 |
 
-![Optimized maintenance schedule table from the dashboard.](assets/maintenance_schedule.png)
+The GA objective is 3.88% lower than priority ordering and 36.59% lower than FIFO for the saved run. This comparison is limited to the implemented synthetic objective, capacity of four machines per day, and changeover penalty. It does not measure money, downtime reduction, or factory savings.
 
-*Figure 9. Saved maintenance order, daily slots, urgency, and recommended action for the 20 machines.*
+![Saved GA progress curve.](assets/ga_progress.png)
 
-## 6. Discussion, limitations, and future scope
+*Figure 8. Best saved objective over 150 generations; the y-axis is a prototype cost, not currency.*
 
-The repository has several methodological strengths: preprocessing is separated from model scripts; missing-value transformations and oversampling are fitted within training pipelines; a group-aware ANN evaluation addresses machine overlap; PR-AUC and confusion counts make class-imbalance effects visible; and the dashboard discloses known limitations. Fuzzy recommendations and the schedule provide decision-support context beyond a raw classifier score.
+![Saved optimized maintenance schedule.](assets/maintenance_schedule.png)
 
-The primary limitations are:
+*Figure 9. The schedule assigns 20 machines to five days at the assumed capacity of four machines per day.*
 
-- **Dataset provenance:** the repository does not document its source, license, collection method, or sensor calibration. This prevents independent assessment of realism and lawful reuse.
-- **Temporal and external validity:** group-aware cross-validation tests held-out machine IDs but mixes time periods across folds. There is no future-time holdout, external site, or prospective validation.
-- **Class distribution shift:** the chronological test set has 6.24% positives versus 16.95% in training. This can change precision, calibration, and operational alarm rates.
-- **High alert burden:** the group-aware ANN yields 1,799 false positives on 20,482 negative records; balanced ANFIS yields 409 false alarms in the separate test comparison.
-- **Threshold tuning:** OOF threshold selection and evaluation use the same OOF predictions; independent threshold validation is not shown.
-- **Model comparability:** the primary nine-feature ANN, the four-feature ANN, and ANFIS experiments use different feature sets and protocols. Only the four-feature ANN/ANFIS comparison is closer to controlled, and it is still limited to one chronological split.
-- **Fuzzy expert validation:** rule text and membership limits are implemented but are not derived from documented expert elicitation or validated maintenance thresholds.
-- **Scheduling realism:** the cost objective, capacity, critical-job rule, and changeover penalty are assumptions; stochastic stability across seeds and richer baselines are not reported.
-- **Deployment readiness:** there is no live sensor ingestion, access control, production monitoring, model drift process, uncertainty reporting, CMMS integration, or human-approved work-order workflow.
+## Comparison with Existing Methods
 
-Recommended future work is to verify and cite dataset provenance; add a locked future-time and external-machine evaluation; report confidence intervals and per-machine outcomes; use nested validation for model and threshold choice; calibrate probabilities and decision costs; validate fuzzy rules with maintenance staff; incorporate real job duration, shifts, skills, parts, deadlines, and production constraints in scheduling; repeat GA runs across seeds; and conduct a prospective pilot with human oversight.
+This is a qualitative comparison with the cited literature, not a head-to-head experiment. Each paper uses its own data and objectives.
 
-## 7. Article, patent, or startup proposal documentation
+| Existing work | Method and focus | Relation to this project | Main difference / caution |
+|---|---|---|---|
+| Susto et al. [1] | Multiple classifiers and prediction horizons linked to cost-based maintenance decisions | Motivates comparing prediction trade-offs and relating false alarms/missed failures to maintenance decisions | The repository does not implement their classifier ensemble or cost model, and its data provenance is undocumented |
+| Guidotti et al. [2] | Systematic review of supervised predictive-maintenance studies | Motivates explicit data and validation caveats | A project prototype is not comparable to a literature review; external generalization remains untested here |
+| Jang [3] | Adaptive neuro-fuzzy inference with hybrid learning | Provides the ANFIS method foundation for the comparison experiments | The saved ANFIS model and four-feature dataset setup differ from Jang’s demonstration tasks |
+| Mamdani and Assilian [4] | Linguistic fuzzy rules used to construct a controller | Motivates the interpretable urgency layer | Current memberships/rules are project-defined, not expert-elicited or validated |
+| Mota et al. [5] | Genetic algorithm for joint production and maintenance scheduling under constraints | Motivates scheduling with capacity and changeover considerations | This project uses a simplified job-ordering objective and does not include production, energy, labor, or measured maintenance costs |
 
-The repository currently provides an academic system prototype rather than a complete article, patent specification, or validated business case. A suitable article framing is **“A Hybrid ANN–Fuzzy–Evolutionary Decision-Support Prototype for Predictive Maintenance”**, with the contribution limited to integration and a transparent comparison on a verified dataset. Before submission, complete the systematic literature search, establish data provenance, provide independent validation, and avoid novelty or generalization claims not supported by experiments.
+## Conclusion
 
-For a startup proposal, the dashboard and scheduling flow can be described as a concept for helping small manufacturers prioritize inspections. No savings, uptime improvement, or commercial readiness should be claimed without customer discovery and a measured pilot. No patentability opinion is made in this report.
+The project demonstrates a complete software path from sensor records to model evaluation, fuzzy condition assessment, a capacity-limited schedule, and dashboard presentation. The machine-grouped ANN evaluation provides the most defensible saved evidence for prediction on machine IDs excluded from training. Balanced ANFIS demonstrates higher recall in a separate four-feature chronological test, with a substantial false-alarm burden. The GA improves the saved prototype objective relative to FIFO and priority order under its stated assumptions.
 
-## 8. References
+The results establish that the pipeline runs on the repository artifacts; they do not establish prospective performance, a universally better model, factory savings, or deployment readiness. Dataset provenance, future-time validation, domain validation of fuzzy rules, calibrated decision costs, and operational scheduling constraints remain unresolved.
+
+## Scope for Future Work
+
+1. Verify and document the dataset source, collection process, sensor definitions, calibration, and redistribution license.
+2. Evaluate on a locked future-time holdout and on machines or plants absent from model development; report per-machine variation and uncertainty.
+3. Use nested or independent validation for feature, model, and threshold selection; report calibration and threshold-specific confusion counts.
+4. Estimate the real costs of missed failures, inspections, parts, downtime, and interventions before choosing an operating threshold.
+5. Review membership functions, fuzzy rules, severity boundaries, and recommendations with maintenance engineers and safety stakeholders.
+6. Extend scheduling to job duration, staff skills, shifts, parts availability, deadlines, production plans, and machine dependencies; repeat GA runs across seeds and compare richer baselines.
+7. Conduct a prospective, human-supervised pilot before making operational or commercial claims.
+
+## References
 
 [1] G. A. Susto, A. Schirru, S. Pampuri, S. McLoone, and A. Beghi, “Machine Learning for Predictive Maintenance: A Multiple Classifiers Approach,” *IEEE Transactions on Industrial Informatics*, vol. 11, no. 3, pp. 812–820, 2015. https://doi.org/10.1109/TII.2014.2349359
 
@@ -218,19 +285,3 @@ For a startup proposal, the dashboard and scheduling flow can be described as a 
 [5] B. Mota, P. Faria, and C. Ramos, “Joint Production and Maintenance Scheduling for Total Cost and Machine Overload Reduction in Manufacturing: A Genetic Algorithm Approach,” *IEEE Access*, vol. 11, pp. 98070–98081, 2023. https://doi.org/10.1109/ACCESS.2023.3312557
 
 [6] scikit-learn developers, “StratifiedGroupKFold,” *scikit-learn User Guide*. https://scikit-learn.org/stable/modules/cross_validation.html#stratifiedgroupkfold
-
-## Appendix A. Reproducibility and artifact map
-
-| Evidence | Repository file |
-|---|---|
-| Dataset counts, missingness, chronological split | `results/preprocessing_summary.json` |
-| Machine-independent five-fold results | `results/machine_independent_ann_metrics.json`, `machine_independent_ann_folds.csv`, `machine_independent_ann_predictions.csv` |
-| ANN configuration comparison | `results/ann_optimization_metrics.csv` |
-| Single-split ANN metrics | `results/ann_metrics.json` |
-| Four-feature ANN results | `results/ann_fair_metrics.json` |
-| ANFIS results | `results/anfis_metrics.json`, `results/anfis_balanced_metrics.json` |
-| Example fuzzy assessment | `results/fuzzy_example.json` |
-| GA objective, configuration, and convergence trace | `results/ga_metrics.json` |
-| Saved machine order | `results/ga_maintenance_schedule.csv` |
-| Existing verification definitions | `run_all_tests.py` |
-

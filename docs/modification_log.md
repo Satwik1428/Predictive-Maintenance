@@ -46,3 +46,11 @@ All modifications below were made on the existing `testing-audit` branch. This b
 - Revised the literature slide and references slide to match the cited papers and their verified bibliographic details.
 - Refreshed the Word report and PowerPoint deliverables; the testing-branch README now uses neutral report labels.
 - No source code, dataset, model, or saved experiment result was changed.
+
+## 2026-11-10 — Report structure refresh
+
+- Replaced the report outline with the requested order: title page, abstract, table of contents, introduction, literature review, motivation, proposed work, methodology, model/architecture/design, implementation, results and analysis, comparison with existing methods, conclusion, future scope, and references.
+- Kept both authors and registration numbers on the report title page.
+- Retained the five cited papers and their project-specific lessons, saved results, and nine supplied UI screenshots.
+- Regenerated the Word report from the revised Markdown report.
+- No source code, dataset, trained model, or saved experimental result was changed.
